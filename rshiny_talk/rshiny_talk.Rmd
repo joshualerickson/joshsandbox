@@ -1,0 +1,450 @@
+---
+title: "<img src='https://www.tidyverse.org/rstudio-logo.svg' alt='RStudio' width='180' height='190' style='border:5px;margin:5px;clear:both;'><img src='https://www.freeiconspng.com/uploads/blue-plus-icon-12.png' width='60' height='70' align='top' style='border:5px;margin:25px;clear:both; position:relative;top:35px;'><img src='https://raw.githubusercontent.com/rstudio/shiny/master/man/figures/logo.png' width='180' height='190' alt='R Shiny' style='border:5px;margin:5px;clear:both;'><br> <span style='color: black; font-size: 30px'>applications in hydrology</span>" 
+author: 
+  - "<span style='color: black; font-size: 25px'>Josh Erickson</span>"
+institute: "<span style='color: black; font-size: 25px'>USDA-Forest Service</span>"
+output:
+  xaringan::moon_reader:
+    css: ["xaringan-themer.css", "extra.css"]
+    nature:
+      slideNumberFormat: "%current%"
+      highlightStyle: github
+      highlightLines: true
+      ratio: 16:9
+      countIncrementalSlides: true
+---
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+knitr::opts_chunk$set(
+  fig.width=9, fig.height=3.5, fig.retina=3,
+  out.width = "100%",
+  cache = FALSE,
+  echo = TRUE,
+  message = FALSE, 
+  warning = FALSE,
+  fig.show = TRUE,
+  hiline = TRUE
+)
+```
+
+```{r xaringan-themer, include=FALSE, warning=FALSE}
+library(xaringanthemer)
+style_mono_accent(
+  base_color = "#035AA6",
+  inverse_header_color = "#FFFFFF",
+  title_slide_background_color = "#FFFFFF"
+)
+```
+
+```{r xaringanExtra, echo=FALSE}
+xaringanExtra::use_xaringan_extra(c("tile_view", "tachyons", "scribble", 'share_again'))
+```
+```{r xaringan-extra-styles, echo=F}
+xaringanExtra::use_extra_styles(
+  hover_code_line = TRUE,         #<<
+  mute_unhighlighted_code = TRUE  #<<
+)
+```
+
+
+## About Me
+
+- Hydrologist (day job)
+- Remote Sensing Analyst (detail)
+- Geoscience and Math background
+- Focus is leveraging computing platforms (R, Python, GEE) for resource management work.
+
+<img src='rshiny_talk_files/images/me.png' height='300px' class='center'>
+---
+
+
+## Goals
+--
+
+- Leave having an idea of what <img src="https://www.tidyverse.org/rstudio-logo.svg" height="30px"> and <img src="https://raw.githubusercontent.com/rstudio/shiny/master/man/figures/logo.png" height="30px"> are and what they can do.  
+
+- What/why, how, apply.  
+
+- Most importantly, some applications in hydrology
+
+<img src="rshiny_talk_files/images/freq_dist.gif" class='center' style='border: 5px solid #555;'>
+
+---
+
+## What is R + Shiny?
+--
+
+- R is a free open source software .blue[(FOSS)] programming language
+
+--
+
+- R was initially set up for exploring research data fast; but has moved into reactive programming in the last decade .blue[(Shiny)]
+
+--
+
+- R shiny <img src="https://raw.githubusercontent.com/rstudio/shiny/master/man/figures/logo.png" height="30px"> is built on this reactive programming.  
+
+--
+
+- It leverages the functional programming in R with reactive programming under the hood.
+
+--
+
+- This allows .blue[(users)] to explore complex problems fast and easy but also create automated/reproducible reports. 
+
+--
+
+- It is a programming language so you can't get around code... 
+
+<img src='https://media.giphy.com/media/aNqEFrYVnsS52/giphy.gif' class='center' height='250px'>
+
+--
+---
+
+## Why R?
+
+(disclaimer - I'm biased; other platforms are just as good!)
+
+--
+
+1. R has a lot of hydrology (USGS, acadamia) and statistics (extreme value, machine learning, etc) packages.
+
+--
+
+2. Well organized community (ask for help it shall be recieved).
+
+--
+
+3. It has {.blue[shiny]} and {.blue[rmarkdown]}, which are great for communicating projects.
+
+--
+
+4. The {.blue[tidyverse]}, which are packages built on an analysis framework.
+
+--
+
+<img src='https://i1.wp.com/rviews.rstudio.com/post/2017-06-09-What-is-the-tidyverse_files/tidyverse2.png?zoom=1.5&w=578&ssl=1' class='center'>
+
+--
+
+---
+
+## Why is that important?
+
+- Having packages built on this '_framework_' really helps with the end goal **communication**.
+
+--
+
+- Shiny is just one part of this workflow but IMO it can be go a long way in communicating as well as exploring/visualizing.
+
+--
+
+- Below is where .blue[Shiny] fits in to this workflow.
+
+--
+<img src='https://josiahparry.com/slides/tidymodels/images/tidyv-flow.png' height="300px" class='center'>
+<center>
+<figcaption>Fig from: https://josiahparry.com/slides/tidymodels/images/tidyv-flow.png</figcaption>
+</center>
+
+--
+
+---
+
+## Caveat! Warning! It's a steep climb! 
+
+To get to full-blown shiny apps!
+
+<img src='https://www.business-science.io/img/curriculum/bsu_the_goal.jpg' height='400' class='center'>
+<center>
+<figcaption>Fig from: https://www.business-science.io/about_program.html</figcaption>
+</center>
+--
+
+---
+## So...
+
+-- If you're overoptimistic, impractical and want to see rapid progression over a short period of time. Then this if for you!
+
+<img src='https://media.giphy.com/media/HyDAt79JnlY4M/giphy.gif' height='400' class='center'>
+
+--
+
+---
+## Else if not...
+
+--
+
+- I'm sure there are some people willing to help you go down the rabbit hole!
+
+<img src='https://media.giphy.com/media/ceK5e0DXc7Zh6/giphy.gif' height='400' class='center'>
+
+--
+
+---
+## Let's dive in
+
+Shiny is a way to take a bunch of tasks that are really similar except for a few things (names, metrics, styles, etc) and react to those inputs.  
+
+--
+
+For example: we want to get annual peak flow for USGS gauging stations.  
+
+--
+
+Normally, we would have to do it like this in R or platform of choice.  
+
+```{r, eval=F}
+library(tidyverse)
+library(ggtext)
+library(dataRetrieval)
+
+# get peak flow data
+peak_yaak <- dataRetrieval::readNWISpeak(12304500)
+
+# graph data
+ggplot(peak_yaak, aes(peak_dt, peak_va)) + 
+  geom_point() + 
+  geom_line() +
+  labs(title = paste0(attr(peak_yaak, which = 'siteInfo')$station_nm), 
+       subtitle = paste0("Drainage Area: ", attr(peak_yaak, which = 'siteInfo')$drain_area_va, ' sq.miles'),
+       x = 'Date',
+       y = "Q (ft<sup>3</sup>/sec)") +
+  theme_bw() + theme(axis.title.y = element_markdown())
+```
+
+
+--
+
+---
+
+<img src='rshiny_talk_files/images/yaak_peak.png' class='center'>
+
+--
+
+---
+
+## But what about the Fisher River
+
+and so on, and so on...
+
+<img src='rshiny_talk_files/images/fisher_ex.gif' class = 'center'>
+
+## what about Tobacco River? Or Thompson? etc, etc.
+
+--
+
+---
+
+## Next logical step
+
+--
+
+Next logical step might be to make a function. This is a little better. But you still need to manually add the siteID.
+
+```{r, eval=F}
+
+peak_plots <- function(siteID){
+  
+  
+  peak <- dataRetrieval::readNWISpeak(siteID)
+
+# graph data
+ggplot(peak, aes(peak_dt, peak_va)) + 
+  geom_point() + 
+  geom_line() +
+  labs(title = paste0("Peak Flow: ",attr(peak, which = 'siteInfo')$station_nm), 
+       subtitle = paste0("Drainage Area: ", attr(peak, which = 'siteInfo')$drain_area_va, ' sq.miles'),
+       x = 'Date',
+       y = "Q (ft<sup>3</sup>/sec)") +
+  theme_bw() + theme(axis.title.y = element_markdown())
+  
+}
+
+peak_plots(12390700)
+```
+
+--
+
+---
+
+<img src='rshiny_talk_files/images/peak_func.gif' class='center' height='500px'>
+
+--
+
+---
+
+## What about <img src="https://raw.githubusercontent.com/rstudio/shiny/master/man/figures/logo.png" height="100px">
+
+--
+
+Definitely some leg work but once you get it going it can be really nice.
+   
+--
+
+```{r, eval=F}
+library(shiny)
+
+usgs_sites <- dataRetrieval::whatNWISdata(stateCd = 'MT', parameterCd='00060')
+usgs_sites <- usgs_sites %>% filter(count_nu >= 365*10)
+
+ui <- fluidPage(
+  selectInput('station', 'Select Station Name', 
+  choices = usgs_sites$station_nm), 
+  plotOutput('peak_plot')
+  )
+
+server <- function(input, output, session) {
+      output$peak_plot <- renderPlot({
+    withProgress(message = 'loading data', value = 1/2,{
+    site_no <- usgs_sites[usgs_sites$station_nm %in% input$station,]$site_no
+      peak_plots(site_no)})})
+}
+shinyApp(ui, server)
+```
+
+--
+
+---
+
+<video width="320" height="240" controls>
+  <source src="rshiny_talk_files/images/shiny_pea.mp4" type="video/mp4">
+</video>
+
+--
+
+---
+## That's great but can we see where the stations are?
+
+--
+
+What's nice with Shiny is we can add a map and click the locations from which a graph will pop-up. We can also make that graph interactive!
+
+<video width="320" height="240" controls>
+  <source src="rshiny_talk_files/images/plotly_peak.mp4" type="video/mp4">
+</video>
+--
+
+---
+
+## What else?
+
+--
+
+- What else can we apply this to?
+
+- Culvert sizing? Flood Frequency? Hydraulics?
+
+--
+
+## Yes, Yes, Yes Yes
+
+<img src='https://media.giphy.com/media/ynRrAHj5SWAu8RA002/giphy.gif' class='center' height='250px'>
+
+--
+
+---
+
+## Culvert Sizing
+
+- How could we apply this culvert sizing?
+
+--
+
+- Take a common approach on the Kootenai and apply to shiny.
+
+--
+
+- Reasons I like this
+
+--
+
+1. It's reproducible
+
+--
+
+2. Take away Excel, ArcGIS and Microsoft Word
+
+--
+
+3. It's quick and automated (less user error)
+
+--
+
+---
+
+## Example (poc)
+
+<video width="320" height="240" controls>
+  <source src="rshiny_talk_files/images/culvert_shiny.mp4" type="video/mp4">
+</video>
+
+
+## Flood Frequency
+
+- Could we get numerous univariate distributions on the fly using the peak function we created?
+
+--
+
+- Sounds like a good idea but how would that look?
+
+--
+
+- Let's take the peak function and then use those values to calculate numerous univariate distributions (GEV, Logpearson, Pearson, Lognormal, etc).
+
+--
+
+- Then let's visualize those distributions graphically (density, Q-Q, CDF, PP) but also run some goodness of fit tests (Kolmogroc-Smirnov, Anderson-Darling, AIC/BIC, etc)
+
+--
+
+- Then we can use this information (gof) to select a distribution to use...
+
+<img src='https://media.giphy.com/media/6utVzLiyU9OuHbd70D/giphy.gif' height='300px' class='center'>
+
+--
+
+---
+
+## Example (poc)
+
+<video width="320" height="240" controls>
+  <source src="rshiny_talk_files/images/distribution.mp4" type="video/mp4">
+</video>
+
+--
+
+---
+
+## Hydraulics?
+
+- How could we do this?
+
+--
+
+- We could make it easier to calculate some common metrics (shear stress and boundary shear stress)
+
+--
+
+- Let's take some inputs (shields D50, particle of interest D50, hydraulic radius, slope, D50) and use widgets to calculate the shear stress and boundary shear stress for us!
+
+--
+
+---
+
+## Example (poc)
+
+<video width="320" height="240" controls>
+  <source src="rshiny_talk_files/images/hydraulics.mp4" type="video/mp4">
+</video>
+
+## Wrapping up
+
+--
+
+- I hope that you can leave having an idea of what <img src="https://www.tidyverse.org/rstudio-logo.svg" height="30px"> and <img src="https://raw.githubusercontent.com/rstudio/shiny/master/man/figures/logo.png" height="30px"> are or get the creative juices going for projects on your forest!
+
+--
+
+# Questions?
