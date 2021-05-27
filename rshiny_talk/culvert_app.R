@@ -18,7 +18,9 @@ library(jsonlite)
 library(AOI)
 library(sf)
 library(plotly)
+library(shinyWidgets)
 library(tidyverse)
+library(shinydashboard)
 
 if (is.null(suppressMessages(webshot:::find_phantom()))) { webshot::install_phantomjs() }
 
@@ -39,7 +41,7 @@ ui <- fluidPage(
       tabPanel("Peak Plot", style = "height:92vh;",
                plotOutput("ss_peak"),
                dataTableOutput("ss_peak_table"),
-               box(textInput("wkID", "Workspace ID"), pickerInput("state", "States", choices = state.abb, multiple = F, selected = "MT"),
+               box(textInput("wkID", "Workspace ID"), pickerInput("state", "States", choices = datasets::state.abb, multiple = F, selected = "MT"),
                    actionButton("peak", label = "Peak Flow"))),
 
       tabPanel("Culvert Size", style = "height:92vh",tags$style(type = 'text/css', '#culvert_plot {height: calc(100vh - 250px) !important;}'),

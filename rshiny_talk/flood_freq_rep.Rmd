@@ -1,0 +1,164 @@
+---
+title: "Discharge Report for USGS Gauging Station: <br> <span style='color: black; font-size: 30px'> `r paste0(usgs_ggplot_data()$station_nm)`</span>"
+params: 
+ set_author: "test" 
+author: "`r params$set_author`"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    self_contained: false
+always_allow_html: true
+---
+
+```{r echo=FALSE, warning=F, message=F}
+library(EGRET)
+library(tidyverse)
+library(kableExtra)
+library(scales)
+
+freq_new <- freq2() %>% filter(Distribution %in% dist_user())
+
+freq_sum <- freq_new %>% group_by(ReturnInterval) %>% summarise(mean = mean(Value))
+
+```
+
+## Introduction
+
+This report provides numerous flow statistics at the USGS gauging station <b>`r paste0(usgs_ggplot_data()$station_nm)`</b>. This is accomplished by generating station statistics through opensource platforms like USGS {EGRET} package (Hirsch & De Cicco, 2015) and R (Team, R, 2020). Furthermore, peak flow values are added to the analysis as well through the USGS {dataRetrieval} package using the `readNWISpeak` function. The statistics generated via USGS {EGRET} are . These variables are then used in the calculations of flood frequency for USGS Regional Regression Estimate (USGS RRE) along with other methods like Omang, Parrett and Hull (1983) & Parrett and Johnson (2004). In addition to the basin characterstic methods (i.e., drainage area, precipitation, percent forested) there are methods by Omang, Parrett and Hull (1983) & Parrett and Johnson (2004) that take into account other variables like bankfull width and active channel width. Along with the flood frequency, calculations for culvert size are recommended using methods from American Iron, & Steel Institute (1983). This is used to assist with making decisions regarding flow and pipe size. Below is a summary of the findings followed by the suite of graphs and tables generated in this process.  
+
+<br>
+
+:::: {style="display: flex;"}
+
+::: {style="flex-basis: 40%;"}
+#### Quick Summary
+ `r paste0(
+          "<b>Station Name: </b>", paste(usgs_data()$station_nm),
+          "<br>","<b>Drainage Area: </b>", paste(usgs_data()$drain_area_va, " sq.mi"),
+          "<br>","<b>Site #: </b>",paste(usgs_data()$site_no),
+          "<br>", "<b>Flood Frequency</b>", 
+          "<br>","<li>", "Avg 2 year: ", paste(comma(freq_sum[freq_sum$ReturnInterval %in% 2, ]$mean,2), " <sup>ft<sup>3</sup></sup>&frasl;<sub>s</sub>"),"</li>",
+          "<li>","Avg 10 year: ", paste(comma(freq_sum[freq_sum$ReturnInterval %in% 10, ]$mean,2), " <sup>ft<sup>3</sup></sup>&frasl;<sub>s</sub>"),"</li>",
+           "<li>","Avg 15 year: ", paste(comma(freq_sum[freq_sum$ReturnInterval %in% 15, ]$mean,2), " <sup>ft<sup>3</sup></sup>&frasl;<sub>s</sub>"),"</li>",
+         "<li>","Avg 25 year: ", paste(comma(freq_sum[freq_sum$ReturnInterval %in% 25, ]$mean,2), " <sup>ft<sup>3</sup></sup>&frasl;<sub>s</sub>"),"</li>",
+        "<li>","Avg 50 year: ", paste(comma(freq_sum[freq_sum$ReturnInterval %in% 50, ]$mean,2), " <sup>ft<sup>3</sup></sup>&frasl;<sub>s</sub>"),"</li>",
+          "<li>","Avg 100 year: ", paste(comma(freq_sum[freq_sum$ReturnInterval %in% 100, ]$mean,2), " <sup>ft<sup>3</sup></sup>&frasl;<sub>s</sub>"),"</li>"
+        )`
+        
+:::
+
+::: {style="flex-basis: 2%;"}
+
+:::
+
+::: {style="flex-basis: 58%;"}
+
+
+```{r echo=F, message = F, warning=F, fig.width=8, fig.height=4}
+
+ggplot(data = freq_new, aes(x= ReturnInterval, y = Value, color = Distribution )) +
+          geom_point(alpha = 0.8, size = 2.5) + geom_line() +
+          #geom_smooth(method = "glm", formula = y ~ ns(log(x), 4), se = FALSE, size = 1) +
+          expand_limits(y = 0) + 
+          #geom_point(data = freq_sum, aes(ReturnInterval, mean), size = 0.5) +
+          scale_x_continuous(breaks = c(2,5,10,25,50,100,200)) + scale_x_log10() + theme(text = element_text(size=20)) +
+          labs(x = "Return Interval", y = "Discharge (cfs)", title = paste0("Flood Frequency"), subtitle = usgs_ggplot_data()$station_nm) +
+          theme_light()+theme(text = element_text(size=15))
+
+```
+:::
+
+::::
+
+```{r, echo=FALSE, results='hide'}
+siteNumber <- usgs_ggplot_data()$site_no
+
+param <- '00060'
+
+Daily <- readNWISDaily(siteNumber, param, startDate = "", endDate = "")
+
+min_year <- min(Daily$Date) %>% str_sub(end = 4) %>% as.numeric()
+max_year <- max(Daily$Date) %>% str_sub(end = 4) %>% as.numeric()
+
+INFO <- readNWISInfo(siteNumber, param, interactive = F)
+
+elist <- as.egret(INFO, Daily)
+
+```
+
+
+<center>
+#### Current Flow
+</center>
+```{r echo=F, message=F, warning=F, fig.align='center'}
+
+      
+      real_time_usgs <- paste0("https://labs.waterdata.usgs.gov/api/graph-images/monitoring-location/", paste(usgs_ggplot_data()$site_no),"/?parameterCode=00060&width=1200&title=true")
+    error <- httr::GET(url = real_time_usgs,
+                       httr::write_disk(path = file.path(tempdir(),
+                                                         "usgs_real_time_tmp.png"),overwrite = TRUE))
+    outfile <- file.path(tempdir(),"usgs_real_time_tmp.png")
+  
+    include_graphics(outfile)
+```
+<center>
+#### Flow statistics using {EGRET}.  
+</center>
+:::: {style="display: flex;"}
+
+::: {style="flex-basis: 45%;"}
+```{r echo = F, warning=F, message=F, fig.width=6, fig.height=6}
+
+plotFour(elist)
+
+```
+
+:::
+
+::: {style="flex-basis: 10%;"}
+:::
+
+::: {style="flex-basis: 45%;"}
+```{r echo=F, warning=F, message=F, fig.width=6, fig.height=6}
+plotQTimeDaily(elist)
+```
+:::
+::::
+
+
+:::: {style="display: flex;"}
+
+::: {style="flex-basis: 45%;"}
+```{r echo=F, warning=F, message=F, results='hide'}
+qDuration <- EGRET::flowDuration(elist, qUnit = 1)
+
+flowd <- data.frame(flow=qDuration, percentiles = factor(x = c('min', '5%', '10%', '25%', '50%', '75%', '90%', '95%', 'max'), 
+                                                         levels = c('min', '5%', '10%', '25%', '50%', '75%', '90%', '95%', 'max')))
+
+ggplot(flowd, aes(percentiles, flow, group = 1)) +
+  geom_point() +
+  geom_line() + scale_y_log10(labels = comma) + 
+  theme_bw() + labs(x = 'Percentiles %', y = 'Discharge (Q cfs)', title = 'Flow Duration Curve')
+
+```
+ 
+:::
+
+::: {style="flex-basis: 10%;"}
+:::
+
+::: {style="flex-basis: 45%;"}
+```{r echo=F, warning=F, message=F, fig.width=6, fig.height=6}
+plotQTimeDaily(elist, qLower = round(freq_sum[freq_sum$ReturnInterval %in% 2, ]$mean,0))
+```
+
+:::
+::::
+```{r, fig.height=12, fig.width=12,echo=FALSE, warning=F, message=F}
+plot15(elist, yearStart = min_year, yearEnd = max_year)
+```
+
+
+## References  
+
+Hirsch, R.M., and De Cicco, L.A., 2015, User guide to Exploration and Graphics for RivEr Trends (EGRET) and dataRetrieval: R packages for hydrologic data (version 2.0, February 2015): U.S. Geological Survey Techniques and Methods book 4, chap. A10, 93 p., https://dx.doi.org/10.3133/tm4A10.
